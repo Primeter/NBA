@@ -166,7 +166,6 @@ baseline = {}
 grid, baseline = evaluate_model(X, y, baseline)
 
 # %% Suppression
-del protected_data_S['total_years']
 protected_data_S.isnull().sum()
 
 # deal with categorical attributes
@@ -179,7 +178,6 @@ sup = {}
 grid_sup, sup = evaluate_model(X, y, sup)
 
 # %% Generalization
-del protected_data_G['total_years']
 protected_data_G.isnull().sum()
 protected_data_G = dealNaN(protected_data_G)
 protected_data_G.isnull().sum()
@@ -194,7 +192,6 @@ gen = {}
 grid_gen, gen = evaluate_model(X, y, gen)
 
 # %% Suppression and noise
-del protected_data_SN['total_years']
 protected_data_SN.isnull().sum()
 
 # deal with categorical attributes
@@ -207,7 +204,6 @@ supnoi = {}
 grid_supnoi, supnoi = evaluate_model(X, y, supnoi)
 
 # %% Suppression and generalization
-del protected_data_SG['total_years']
 protected_data_SG.isnull().sum()
 
 # deal with categorical attributes
@@ -220,7 +216,6 @@ supgen = {}
 grid_supgen, supgen = evaluate_model(X, y, supgen)
 
 # %% Generalization and noise
-del protected_data_GN['total_years']
 protected_data_GN.isnull().sum()
 protected_data_GN = dealNaN(protected_data_GN)
 protected_data_GN.isnull().sum()
@@ -235,7 +230,6 @@ gennoi = {}
 grid_gennoi, gennoi = evaluate_model(X, y, gennoi)
 
 # %% Suppression, generalization and noise
-del protected_data_SGN['total_years']
 protected_data_SGN.isnull().sum()
 
 # deal with categorical attributes
