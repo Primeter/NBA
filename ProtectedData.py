@@ -150,12 +150,12 @@ def df_reset(copy_df):
 
 
 # %% Set the parameters to generalization
-hg = [22, 24, 26]
-wg = [22, 24, 26]
-born = [10, 12, 14]
-age = [10, 12, 14]
-nbay = [6, 8]
-years = [6, 8]
+hg = [3, 5, 10, 12]
+wg = [3, 5, 10, 12]
+born = [3, 5, 6]
+age = [3, 5, 6]
+nbay = [3, 5, 6]
+years = [3, 5, 6]
 
 def reset_col(column, df):
     for col in cols[cols.index(column):]:
@@ -241,11 +241,11 @@ fk_G = stats_G.groupby('fk=1').size().reset_index(name='Count')
 stats_G[stats_G['fk=1'] == 725]
 
 # %% Save the best parameters
-a = 8
-b = 8
-h = 12
-w = 16
-n = 8
+a = 6
+b = 6
+h = 10
+w = 10
+n = 6
 y = 6
 protected_data_G['Age'] = pd.cut(protected_data['Age'], bins=list(range(-1, 2025, a)))
 protected_data_G['born'] = pd.cut(protected_data['born'], bins=list(range(-1, 2025, b)))
@@ -290,6 +290,18 @@ def Laplace(ep):
 
     return laplacian_noise
 
+def save_best_epsilon(col, df, eq):
+    ints = ['G', 'GS', 'MP', 'ORB', 'DRB', 'TRB', 'PTS']
+    ep = 0.5
+    for group_name, df_group in eq:
+        for row_index, row in df_group.iterrows():
+            df[col][row_index] = df[col][row_index] + Laplace(ep)
+    if col in ints:
+        df[col] = df[col].apply(lambda x: format(x, '.0f'))
+    else:
+        df[col] = df[col].apply(lambda x: format(x, '.1f'))
+    df[col] = df[col].astype('float64')
+    return df
 
 # how many equivalence classes
 eq = protected_data_SN.groupby(qi_k)
@@ -332,12 +344,12 @@ stats_SG, experimental_data_SG = generalization(stats_SG, experimental_data_SG)
 fk_SG = stats_SG.groupby('fk=1').size().reset_index(name='Count')
 
 # %% Save the best parameters
-a = 12
-b = 14
-h = 26
-w = 30
-n = 8
-y = 8
+a = 6
+b = 6
+h = 10
+w = 10
+n = 6
+y = 6
 protected_data_SG['Age'] = pd.cut(protected_data_S['Age'], bins=list(range(-1, 2025, a)))
 protected_data_SG['born'] = pd.cut(protected_data_S['born'], bins=list(range(-1, 2025, b)))
 protected_data_SG['height'] = pd.cut(protected_data_S['height'], bins=list(range(-1, 2025, h)))
