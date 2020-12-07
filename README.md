@@ -10,4 +10,5 @@ Python version >= 3.7
 **Install dependecies**
 
 Install python dependencies using pip
+```python
 pip install -r requirements.txt
