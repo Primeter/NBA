@@ -4,8 +4,10 @@ Privacy-preservation has become an essential concern in many data mining applica
 In this project, we evaluate the impact of privacy-preserving techniques in predictive performance.
 
 **Requirements** 
+
 Python version >= 3.7
 
 **Install dependecies**
+
 Install python dependencies using pip
 pip install -r requirements.txt
