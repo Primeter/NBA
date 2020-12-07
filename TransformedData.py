@@ -1,4 +1,3 @@
-import os
 import pandas as pd
 import numpy as np
 
@@ -36,19 +35,14 @@ season_name = season.groupby(['Player']).size().reset_index(name='Count')
 
 injuries.info()
 
-check_acq_relq = injuries.loc[(injuries['Relinquished'] == 'Al Horford') | (injuries['Acquired'] == 'Al Horford')]
-
 ##########################
-#       Processing       #
+#     Pre-processing     #
 ##########################
 
-# Get data over 2010
-# player_data = player_data.loc[player_data['year_start'] >= 2010]
+# Get data after 2010
 season = season.loc[season['Year'] >= 2010]
 
-# Get players born after 1977 on players dataset
-player_data.loc[player_data['name'] == 'Chris Johnson']
-players.loc[players['Player'] == 'Chris Johnson']
+# Get players born after 1977 in players dataset
 players = players.loc[players['born'] >= 1977]
 
 # Fix born on A.J. Price
@@ -95,7 +89,6 @@ del merge_data['blanl']
 merge_data = merge_data[merge_data['Year'].notnull()].reset_index(drop=True)
 
 player_teams = merge_data.groupby(['Player', 'Tm']).size().reset_index(name='Count')
-check_years_played = merge_data.loc[merge_data['Player'] == 'A.J. Price']  # data[2010-2015], reality:[2009-2017]
 
 # WORK ON INJURIES
 # Drop row with information about retirement
@@ -140,10 +133,6 @@ injuries = injuries[~(injuries['Case'].isin(['returned to lineup']))].reset_inde
 injuries['Date'] = pd.to_datetime(injuries['Date'])
 injuries['Year'] = injuries['Date'].apply(lambda x: x.year if x.month < 10 else x.year + 1)
 
-# Case study
-cases_nan = injuries[injuries['Case'] == 'nan']
-steve = injuries.loc[injuries['Player'] == 'Steve Nash']
-
 # Replace nan by DNP
 injuries['Case'] = np.where(injuries['Case'] == 'nan', 'DNP', injuries['Case'])
 
@@ -157,7 +146,7 @@ injuries['Days'] = injuries['Days'].fillna(0)
 # There are games every two days (minimal). Consider 7 for lack of information
 injuries['Days'] = injuries['Days'].apply(lambda x: x if x <= 7 else 0)
 
-# Flag to facilitate the calculation of maximum days with injury
+# Create a flag to facilitate the calculation of maximum days with injury
 injuries['flag'] = np.where((injuries['Days'] != 0) & (injuries['Case'] != 'DTD'), 1, 0)
 
 # Get max days with injuries
@@ -172,14 +161,6 @@ injuries['SevereInjury'] = (injuries.groupby(['Year', 'Player']).Case
 
 # Assign severe injury if player did not play >15 days in each season
 injuries['SevereInjury'] = np.where((injuries.MaxDays >= 15) & (injuries.SevereInjury != 1), 1, injuries.SevereInjury)
-
-# Case study
-ab = injuries.loc[(injuries['Player'] == 'O.J. Mayo') | (injuries['Player'] == 'Ario Chalmers') | (
-            injuries['Player'] == 'Mike Miller')
-                  | (injuries['Player'] == 'Danilo Gallinari')
-                  | (injuries['Player'] == 'Kobe Bryant')]
-
-# Leasao grave a partir do 15º dia ou considerar tudo como lesao??
 
 # Clean Team
 tm = merge_data.groupby('Tm').size().reset_index(name='Count')
@@ -221,11 +202,6 @@ injuries['Tm'] = np.where(injuries['Tm'] == 'Wizards', 'WAS', injuries['Tm'])
 # Group injuries by year
 injuries_reduce = injuries.loc[injuries.groupby(['Player', 'Year', 'Tm']).Year.idxmin()]
 
-abb = injuries_reduce.loc[(injuries_reduce['Player'] == 'O.J. Mayo') | (injuries_reduce['Player'] == 'Ario Chalmers') | (
-            injuries_reduce['Player'] == 'Mike Miller')
-                  | (injuries_reduce['Player'] == 'Danilo Gallinari')
-                          | (injuries_reduce['Player'] == 'Kobe Bryant')]
-
 # Get the needed data to merge
 injuries_reduce = injuries_reduce[['Tm', 'Player', 'Year', 'SevereInjury']]
 
@@ -242,11 +218,27 @@ sevinj = final_data.groupby('SevereInjury').size().reset_index(name='Count')
 # Delete college
 del final_data['college']
 
+# Deal with NAN
+final_data = final_data[~(final_data['PER'].isnull())]
+final_data = final_data[~(final_data['ORB%'].isnull())]
+
 final_data['NBA_Years'] = final_data['NBA_Years'].fillna(final_data['Year'].sub(final_data.groupby('Player')['Year'].transform('first')))
 
 # Keep distinct players (there are players in many teams in the same season)
 final_data = final_data.loc[final_data.groupby(['Player', 'Year'])['SevereInjury'].idxmax()]
 
+# Keep the interesting attributes for our problem
+cols = ['height', 'weight', 'collage', 'born', 'birth_city', 'birth_state', 'year_start', 'year_end',
+        'Year', 'Age', 'NBA_Years', 'PER', 'G', 'GS', 'MP', 'ORB%', 'DRB%', 'TRB%', 'ORB', 'DRB', 'TRB', 'PTS']
+
+df_columns = final_data.columns.values.tolist()
+tgt = ['SevereInjury']
+cols_to_remove = list(set(df_columns) - set(cols) - set(tgt))
+final_data.drop(final_data[cols_to_remove], axis=1, inplace=True)
+
+final_data.rename(columns={'collage': 'college'}, inplace=True)
+
+final_data.to_csv('NBA_Data/PlayersStats_SevereInjuries_clean.csv', index=False)
 
 # G-Games; GS-Game Started; MP-Minutes Played per game ; PER-Player Efficiency Rating ; TS%-True Shooting percentage;
 # 3PAr-3Point Attempt Rate; FTr-Free Trows Rate; ORB%-Offensive Rebounds per game percentage;

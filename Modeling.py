@@ -1,33 +1,21 @@
 import pandas as pd
 from collections import Counter
-from matplotlib import pyplot as plt
-import matplotlib.ticker as mtick
 from sklearn.ensemble import RandomForestClassifier, BaggingClassifier
 from sklearn.metrics import confusion_matrix, balanced_accuracy_score
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.preprocessing import LabelEncoder
-import numpy as np
 from sklearn.svm import SVC
 from xgboost import XGBClassifier
 
 # %% Load data
-initial_data = pd.read_csv('NBA_Data/PlayersStats_SevereInjuries_clean2.csv')
-protected_data_S = pd.read_csv('NBA_Data/Protected_NBA_Sup_clean.csv')
-protected_data_G = pd.read_csv('NBA_Data/Protected_NBA_Gen_clean.csv')
-protected_data_SN = pd.read_csv('NBA_Data/Protected_NBA_SupNoi_clean.csv')
-protected_data_SG = pd.read_csv('NBA_Data/Protected_NBA_SupGen_clean.csv')
-protected_data_GN = pd.read_csv('NBA_Data/Protected_NBA_GenNoi_clean.csv')
-protected_data_SGN = pd.read_csv('NBA_Data/Protected_NBA_SupGenNoi_clean.csv')
+initial_data = pd.read_csv('NBA_Data/PlayersStats_SevereInjuries_clean.csv')
+protected_data_S = pd.read_csv('NBA_Data/Protected_NBA_Sup.csv')
+protected_data_G = pd.read_csv('NBA_Data/Protected_NBA_Gen.csv')
+protected_data_SN = pd.read_csv('NBA_Data/Protected_NBA_SupNoi.csv')
+protected_data_SG = pd.read_csv('NBA_Data/Protected_NBA_SupGen.csv')
+protected_data_GN = pd.read_csv('NBA_Data/Protected_NBA_GenNoi.csv')
+protected_data_SGN = pd.read_csv('NBA_Data/Protected_NBA_SupGenNoi.csv')
 
-
-qi_k = ['height', 'weight', 'collage', 'born', 'birth_city', 'birth_state', 'year_start', 'year_end',
-        'Year', 'Age', 'NBA_Years']
-
-protected_data_SGN['fk'] = protected_data_SGN.groupby(qi_k, dropna=False)['collage'].transform('size')
-
-initial_fk = protected_data_SGN.groupby('fk').size().reset_index(name='Count')
-
-protected_data_SGN
 
 # %% Functions to prepare data
 # re-index columns in the protected data sets
@@ -75,7 +63,6 @@ def evaluate_model(X, y, res):
     seed = 42
     rfc = RandomForestClassifier(random_state=seed)
     bc = BaggingClassifier(random_state=seed)
-    # gbc = GradientBoostingClassifier(random_state=seed)
     xgb = XGBClassifier(random_state=seed)
     svm = SVC(probability=True)
 
@@ -138,10 +125,6 @@ def evaluate_model(X, y, res):
 
 
 # %% Prepare baseline
-# set the same columns length to the initial data
-cols_to_remove = list(set(list(initial_data.columns)) - set(list(protected_data_S.columns)))
-initial_data.drop(initial_data[cols_to_remove], axis=1, inplace=True)
-
 # check NaN
 initial_data.isnull().sum()
 initial_data = dealNaN(initial_data)
