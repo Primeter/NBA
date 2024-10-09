@@ -1,0 +1,15 @@
+params,model,test_accuracy,test_balanced_accuracy,test_f1_weighted,test_roc_auc_balanced
+{'classifier': RandomForestClassifier(random_state=42)},Random Forest,0.6123680241327301,0.4235274904052111,0.5738417114781235,0.7036098542659144
+{'classifier': BaggingClassifier(random_state=42)},Bagging,0.5987933634992458,0.42637797501271973,0.5697482905807282,0.6858912532254157
+"{'classifier': XGBClassifier(base_score=None, booster=None, callbacks=None,
+              colsample_bylevel=None, colsample_bynode=None,
+              colsample_bytree=None, device=None, early_stopping_rounds=None,
+              enable_categorical=False, eval_metric='logloss',
+              feature_types=None, gamma=None, grow_policy=None,
+              importance_type=None, interaction_constraints=None,
+              learning_rate=None, max_bin=None, max_cat_threshold=None,
+              max_cat_to_onehot=None, max_delta_step=None, max_depth=None,
+              max_leaves=None, min_child_weight=None, missing=nan,
+              monotone_constraints=None, multi_strategy=None, n_estimators=None,
+              n_jobs=None, num_parallel_tree=None, objective='multi:softprob', ...)}",XGBoost,0.6168929110105581,0.4650259734549406,0.5999053482564616,0.7321513725825028
+{'classifier': SVC(probability=True)},SVC(probability=True),0.5610859728506787,0.35048523564550477,0.43141622340649827,0.6375668439063561

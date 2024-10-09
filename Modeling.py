@@ -1,12 +1,15 @@
+# %%
 import pandas as pd
 from collections import Counter
 from sklearn.ensemble import RandomForestClassifier, BaggingClassifier
-from sklearn.metrics import confusion_matrix, balanced_accuracy_score
-from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.metrics import balanced_accuracy_score,make_scorer, f1_score, roc_auc_score,accuracy_score
+from sklearn.model_selection import train_test_split,GridSearchCV, RepeatedKFold
 from sklearn.preprocessing import LabelEncoder
 from sklearn.svm import SVC
 from xgboost import XGBClassifier
-
+from sklearn.pipeline import Pipeline
+import os
+import numpy as np
 # %% Load data
 initial_data = pd.read_csv('NBA_Data/PlayersStats_SevereInjuries_clean.csv')
 protected_data_S = pd.read_csv('NBA_Data/Protected_NBA_Sup.csv')
@@ -56,73 +59,109 @@ def load_data(df):
 
 
 # evaluate a model
-def evaluate_model(X, y, res):
-    # split data 70/30
-    X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y, test_size=0.3)
+def evaluate_model(X, y):
+    # split data 80/20
+    X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y, test_size=0.2)
 
     seed = 42
     rfc = RandomForestClassifier(random_state=seed)
     bc = BaggingClassifier(random_state=seed)
-    xgb = XGBClassifier(random_state=seed)
+    xgb = XGBClassifier(objective='binary:logistic',
+            eval_metric='logloss',
+            use_label_encoder=False,
+            random_state=seed)
     svm = SVC(probability=True)
 
     # set parameters
-    param_grid = {
-        'n_estimators': [50, 100, 200, 500, 600],
-        'max_depth': [4, 6, 8, 10]
-    }
-    param_grid_bc = {
-        'n_estimators': [50, 100, 200, 500, 600]
-    }
-    param_grid_xgb = {
-        'n_estimators': [50, 100, 200, 500, 600],
-        'max_depth': [4, 6, 8, 10],
-        'learning_rate': [0.1, 0.01, 0.001]
-    }
-    param_grid_svm = {'gamma': [1e-2, 1e-3, 1e-4, 1e-5],
-                      'C': [1, 10, 100]}
+    params = [
+        {'classifier__n_estimators': [50, 100, 200, 500, 600],
+        'classifier__max_depth': [4, 6, 8, 10],
+        'classifier':[rfc]},
+        {'classifier__n_estimators': [50, 100, 200, 500, 600],
+        'classifier':[bc]},
+        {'classifier__n_estimators': [50, 100, 200, 500, 600],
+        'classifier__max_depth': [4, 6, 8, 10],
+        'classifier__learning_rate': [0.1, 0.01, 0.001],
+        'classifier':[xgb]},
+        {'classifier__gamma': [1e-2, 1e-3, 1e-4, 1e-5],
+        'classifier__C': [1, 10, 100],
+        'classifier':[svm]}
+    ]
 
     # define metric functions
-    scoring = ['accuracy', 'balanced_accuracy', 'f1_weighted', 'roc_auc_ovr_weighted', 'roc_auc_ovo_weighted']
+    #scoring = ['accuracy', 'balanced_accuracy', 'f1_weighted', 'roc_auc_ovr_weighted', 'roc_auc_ovo_weighted']
+    scoring = {
+        'acc': 'accuracy',
+        'bal_acc': 'balanced_accuracy',
+        'f1': 'f1',
+        'f1_weighted': 'f1_weighted',
+        'roc_auc_weighted': 'roc_auc_ovr_weighted'
+        }
+    
+    pipeline = Pipeline([('classifier', rfc)])
+    
+    print("Start modeling with CV")
+    # Train the grid search model
+    gs = GridSearchCV(
+        pipeline,
+        param_grid=params,
+        cv=RepeatedKFold(n_splits=5, n_repeats=2),
+        scoring=scoring,
+        refit='acc',
+        return_train_score=True,
+        n_jobs=-1).fit(X_train, y_train)
 
-    # create the parameter grid
-    gs_rf = GridSearchCV(estimator=rfc, param_grid=param_grid, cv=5, scoring=scoring, refit='balanced_accuracy',
-                         return_train_score=True)
-    gs_bc = GridSearchCV(estimator=bc, param_grid=param_grid_bc, cv=5, scoring=scoring, refit='balanced_accuracy',
-                         return_train_score=True)
-    gs_xgb = GridSearchCV(estimator=xgb, param_grid=param_grid_xgb, cv=5, scoring=scoring, refit='balanced_accuracy',
-                          return_train_score=True)
-    gs_svm = GridSearchCV(estimator=svm, param_grid=param_grid_svm, cv=5, scoring=scoring, refit='balanced_accuracy',
-                          return_train_score=True)
+    score_cv = {
+    'params':[], 'model':[],
+    'test_accuracy': [], 'test_balanced_accuracy': [], 'test_f1_weighted':[], 'test_roc_auc_balanced':[]
+    }
+    # Store results from grid search
+    validation = pd.DataFrame(gs.cv_results_)
 
-    # List of pipelines for ease of iteration
-    grids = [gs_rf, gs_bc, gs_xgb, gs_svm]
+    validation['model'] = validation['param_classifier']
+    validation['model'] = validation['model'].apply(lambda x: 'Random Forest' if 'RandomForest' in str(x) else x)
+    validation['model'] = validation['model'].apply(lambda x: 'XGBoost' if 'XGB' in str(x) else x)
+    validation['model'] = validation['model'].apply(lambda x: 'SVC' if 'SVM' in str(x) else x)
+    validation['model'] = validation['model'].apply(lambda x: 'Bagging' if 'Bagging' in str(x) else x)
 
-    # Dictionary of pipelines and classifier types for ease of reference
-    grid_dict = {0: 'Random Forest', 1: 'Bagging', 2: 'Boosting', 3: 'SVM'}
+    print("Start modeling in out of sample")
 
-    # Fit the grid search objects
-    print('Performing model optimizations...')
+    for i in range(len(validation)):
+        # set each model for prediction on test
+        clf_best = gs.best_estimator_.set_params(**gs.cv_results_['params'][i]).fit(X_train, y_train)
+        clf = clf_best.predict(X_test)
+        # Predict probabilities for ROC AUC
+        clf_pred_proba = clf_best.predict_proba(X_test)
 
-    for idx, gs in enumerate(grids):
-        print('\nEstimator: %s' % grid_dict[idx])
-        # Performing cross validation to tune parameters for best model fit
-        gs.fit(X_train, y_train)
-        # Best params
-        print('Best params: %s' % gs.best_params_)
-        # Best training data accuracy
-        print('Best training accuracy: %.3f' % gs.best_score_)
-        # Store results from grid search
-        # res['cv_results_' + str(grid_dict[idx])] = pd.DataFrame.from_dict(scores.cv_results_)
-        res['cv_results_' + str(grid_dict[idx])] = gs.cv_results_
-        # Predict on test data with best params
-        y_pred = gs.predict(X_test)
-        print(confusion_matrix(y_test, y_pred))
-        # Test data accuracy of model with best params
-        print('Test set accuracy score for best params: %.3f ' % balanced_accuracy_score(y_test, y_pred))
+        score_cv['params'].append(str(gs.cv_results_['params'][i]))
+        score_cv['model'].append(validation.loc[i, 'model'])
+        score_cv['test_accuracy'].append(accuracy_score(y_test, clf))
+        score_cv['test_f1_weighted'].append(f1_score(y_test, clf, average='weighted'))
+        score_cv['test_balanced_accuracy'].append(balanced_accuracy_score(y_test, clf))
+        score_cv['test_roc_auc_balanced'].append(roc_auc_score(y_test, clf_pred_proba, multi_class='ovr', average='weighted'))
 
-    return gs, res
+    score_cv = pd.DataFrame(score_cv)
 
+    return [validation, score_cv]
+
+
+def save_results(file, results):
+    """Create a folder if dooes't exist and save results
+
+    Args:
+        file (string): file name
+        results (list of Dataframes): results for cross validation and out of sample
+    """
+    output_folder_val = ('results_modeling/validation')
+    output_folder_test = ('results_modeling/test')
+    if not os.path.exists(output_folder_val): os.makedirs(output_folder_val)
+    if not os.path.exists(output_folder_test): os.makedirs(output_folder_test)
+
+    results[0].to_csv(f'{output_folder_val}/{file}.csv', index=False)
+    results[1].to_csv(f'{output_folder_test}/{file}.csv', index=False)
+
+
+# %%
 
 # %% Prepare baseline
 # check NaN
@@ -144,10 +183,10 @@ for k, v in counter.items():
 
 # %% Baseline
 X, y = load_data(initial_data)
-# store results from all grids
-baseline = {}
-grid, baseline = evaluate_model(X, y, baseline)
+results = evaluate_model(X, y)
+save_results('orig', results)
 
+# %%
 # %% Suppression
 protected_data_S.isnull().sum()
 
@@ -156,10 +195,8 @@ protected_data_S = dummies(protected_data_S)
 protected_data_S = reindex_cols(protected_data_S)
 
 X, y = load_data(protected_data_S)
-# store results from all grids
-sup = {}
-grid_sup, sup = evaluate_model(X, y, sup)
-
+sup = evaluate_model(X, y)
+save_results('sup', sup)
 # %% Generalization
 protected_data_G.isnull().sum()
 protected_data_G = dealNaN(protected_data_G)
@@ -170,10 +207,8 @@ protected_data_G = dummies(protected_data_G)
 protected_data_G = reindex_cols(protected_data_G)
 
 X, y = load_data(protected_data_G)
-# store results from all grids
-gen = {}
-grid_gen, gen = evaluate_model(X, y, gen)
-
+gen = evaluate_model(X, y)
+save_results('gen', gen)
 # %% Suppression and noise
 protected_data_SN.isnull().sum()
 
@@ -182,9 +217,8 @@ protected_data_SN = dummies(protected_data_SN)
 protected_data_SN = reindex_cols(protected_data_SN)
 
 X, y = load_data(protected_data_SN)
-# store results from all grids
-supnoi = {}
-grid_supnoi, supnoi = evaluate_model(X, y, supnoi)
+supnoi = evaluate_model(X, y)
+save_results('supnoi', supnoi)
 
 # %% Suppression and generalization
 protected_data_SG.isnull().sum()
