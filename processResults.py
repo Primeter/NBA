@@ -187,5 +187,5 @@ sns.move_legend(g,bbox_to_anchor=(0.5,0), loc='lower center', borderaxespad=0., 
 
 sns.set(font_scale=1)
 g.fig.tight_layout()
-fig.savefig(f'Plots/all_results_boxplot.pdf', bbox_inches='tight')
+g.savefig(f'Plots/all_results_boxplot.pdf', bbox_inches='tight')
 
