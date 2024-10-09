@@ -1,3 +1,4 @@
+# %%
 import pandas as pd
 import numpy as np
 
@@ -8,7 +9,7 @@ injuries = pd.read_csv('NBA_Data/injuries_2010-2020.csv')
 
 del players['Unnamed: 0']
 del season['Unnamed: 0']
-
+# %%
 #########################
 #       ANALYSIS        #
 #########################
@@ -34,7 +35,7 @@ player_data_name = player_data.groupby(['name']).size().reset_index(name='Count'
 season_name = season.groupby(['Player']).size().reset_index(name='Count')
 
 injuries.info()
-
+# %%
 ##########################
 #     Pre-processing     #
 ##########################
