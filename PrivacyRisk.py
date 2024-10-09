@@ -70,6 +70,10 @@ protected_data_SG = pd.read_csv('NBA_Data/Protected_NBA_SupGen.csv')
 protected_data_GN = pd.read_csv('NBA_Data/Protected_NBA_GenNoi.csv')
 protected_data_SGN = pd.read_csv('NBA_Data/Protected_NBA_SupGenNoi.csv')
 
+# %% Set of quasi-identifiers
+qi_k = ['height', 'weight', 'college', 'born', 'birth_city', 'birth_state', 'year_start', 'year_end',
+        'Year', 'Age', 'NBA_Years']
+
 # %% Convert to string the numerical data which are in range categories - to record linkage
 initial_data_S = initial_data.copy()
 initial_data_G = initial_data.copy()
