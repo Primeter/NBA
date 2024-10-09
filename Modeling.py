@@ -161,8 +161,6 @@ def save_results(file, results):
     results[1].to_csv(f'{output_folder_test}/{file}.csv', index=False)
 
 
-# %%
-
 # %% Prepare baseline
 # check NaN
 initial_data.isnull().sum()
@@ -197,6 +195,7 @@ protected_data_S = reindex_cols(protected_data_S)
 X, y = load_data(protected_data_S)
 sup = evaluate_model(X, y)
 save_results('sup', sup)
+
 # %% Generalization
 protected_data_G.isnull().sum()
 protected_data_G = dealNaN(protected_data_G)
@@ -209,6 +208,7 @@ protected_data_G = reindex_cols(protected_data_G)
 X, y = load_data(protected_data_G)
 gen = evaluate_model(X, y)
 save_results('gen', gen)
+
 # %% Suppression and noise
 protected_data_SN.isnull().sum()
 
@@ -228,9 +228,8 @@ protected_data_SG = dummies(protected_data_SG)
 protected_data_SG = reindex_cols(protected_data_SG)
 
 X, y = load_data(protected_data_SG)
-# store results from all grids
-supgen = {}
-grid_supgen, supgen = evaluate_model(X, y, supgen)
+supgen = evaluate_model(X, y)
+save_results('supgen', supgen)
 
 # %% Generalization and noise
 protected_data_GN.isnull().sum()
@@ -242,9 +241,8 @@ protected_data_GN = dummies(protected_data_GN)
 protected_data_GN = reindex_cols(protected_data_GN)
 
 X, y = load_data(protected_data_GN)
-# store results from all grids
-gennoi = {}
-grid_gennoi, gennoi = evaluate_model(X, y, gennoi)
+gennoi = evaluate_model(X, y)
+save_results('gennoi', gennoi)
 
 # %% Suppression, generalization and noise
 protected_data_SGN.isnull().sum()
@@ -254,7 +252,5 @@ protected_data_SGN = dummies(protected_data_SGN)
 protected_data_SGN = reindex_cols(protected_data_SGN)
 
 X, y = load_data(protected_data_SGN)
-# store results from all grids
-supgennoi = {}
-grid_supgennoi, supgennoi = evaluate_model(X, y, supgennoi)
-
+supgennoi = evaluate_model(X, y)
+save_results('supgennoi', supgennoi)
