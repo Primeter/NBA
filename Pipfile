@@ -9,6 +9,7 @@ scikit-learn = "*"
 xgboost = "*"
 numpy = "*"
 recordlinkage = "*"
+seaborn = "*"
 
 [dev-packages]
 ipykernel = "*"
