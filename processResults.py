@@ -185,7 +185,7 @@ for ax,i in zip(axes,range(7)):
 g.add_legend()
 sns.move_legend(g,bbox_to_anchor=(0.5,0), loc='lower center', borderaxespad=0., ncol=4, frameon=False, title='')
 
-sns.set(font_scale=1)
+sns.set(font_scale=1.15)
 g.fig.tight_layout()
 g.savefig(f'Plots/all_results_boxplot.pdf', bbox_inches='tight')
 
