@@ -156,4 +156,36 @@ sns.set(font_scale=1.2)
 fig.savefig(f'Plots/all_results.pdf', bbox_inches='tight')
 
 
-# %%
+# %% boxplot of raw values
+all_results = concat_results()
+all_results.loc[all_results['model'].str.contains('SVC'), 'model'] = 'SVM'
+#%%
+sns.set_style("darkgrid")
+colors=['#e76f51','#f4a261','#e9c46a','#fff3b0']
+g = sns.FacetGrid(all_results, col="technique", col_order=['orig','sup','gen','supgen','supnoi','gennoi','supgennoi'],
+                  hue='model',height=3.5, aspect=0.56,gridspec_kws={"wspace":0.05},palette=colors)
+g.map(sns.boxplot,"model", "test_f1_weighted")
+g.set_xticklabels('')
+g.set_xlabels('')
+g.set_ylabels('F-score')
+g.set(yticks = np.arange(0.35, 0.75, 0.05))
+#g.set_yticks(np.arange(30, 70, 5))
+# flatten the array of axes for easy iteration and usage
+axes = g.axes.flat
+
+title=['Baseline', 'Suppression', 'Generalisation',
+       'Suppression and \nGeneralisation', 'Suppression \nand noise',
+       'Generalisation \nand noise',
+       'Suppression, \nGeneralisation \nand noise']
+# rotate the titles by iterating through each axes
+for ax,i in zip(axes,range(7)):
+    #title = ax.get_title()
+    #print(title)
+    ax.set_title(title[i])
+g.add_legend()
+sns.move_legend(g,bbox_to_anchor=(0.5,0), loc='lower center', borderaxespad=0., ncol=4, frameon=False, title='')
+
+sns.set(font_scale=1)
+g.fig.tight_layout()
+fig.savefig(f'Plots/all_results_boxplot.pdf', bbox_inches='tight')
+
