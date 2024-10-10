@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "d12010d32b869d7f350b5204e9ff58a84b64c27fd604fc459169bcd6b8126793"
+            "sha256": "750c47ae6e2c13b69a7d23b76d23630cbfbf97159a4539fc43d257ee43d8923f"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -399,7 +399,7 @@
                 "sha256:f6ee45bc4245533111ced13f1f2cace1e7f89d1c793390392a80c139d6cf0e6c",
                 "sha256:f7c0410f181a531ec4e93bbc27692f2c71a15c2da16766f5ba9761e7ae518413"
             ],
-            "markers": "python_version >= '3.9'",
+            "index": "pypi",
             "version": "==3.9.2"
         },
         "numpy": {
@@ -460,14 +460,6 @@
             ],
             "index": "pypi",
             "version": "==2.1.2"
-        },
-        "nvidia-nccl-cu12": {
-            "hashes": [
-                "sha256:aa946c8327e22ced28e7cef508a334673abc42064ec85f02d005ba1785ea4cec",
-                "sha256:b097258d9aab2fa9f686e33c6fe40ae57b27df60cedbd15d139701bb5509e0c1"
-            ],
-            "markers": "platform_system == 'Linux' and platform_machine != 'aarch64'",
-            "version": "==2.23.4"
         },
         "packaging": {
             "hashes": [
@@ -761,6 +753,14 @@
         }
     },
     "develop": {
+        "appnope": {
+            "hashes": [
+                "sha256:1de3860566df9caf38f01f86f65e0e13e379af54f9e4bee1e66b48f2efffd1ee",
+                "sha256:502575ee11cd7a28c0205f379b525beefebab9d161b7c964670864014ed7213c"
+            ],
+            "markers": "platform_system == 'Darwin'",
+            "version": "==0.1.4"
+        },
         "asttokens": {
             "hashes": [
                 "sha256:051ed49c3dcae8913ea7cd08e46a606dba30b79993209636c4875bc1d637bc24",

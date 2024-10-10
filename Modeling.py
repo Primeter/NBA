@@ -8,7 +8,9 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.svm import SVC
 from xgboost import XGBClassifier
 from sklearn.pipeline import Pipeline
+import matplotlib.pyplot as plt
 import os
+import seaborn as sns
 import numpy as np
 # %% Load data
 initial_data = pd.read_csv('NBA_Data/PlayersStats_SevereInjuries_clean.csv')
@@ -178,7 +180,30 @@ for k, v in counter.items():
     per = v / len(target) * 100
     print('Class=%d, Count=%d, Percentage=%.3f%%' % (k, v, per))
 
+# %%
+bins = [0, 1, 2, 3]  # 4 bin edges for 3 categories
+names = ['Not injury', 'Minor injury', 'Severe injury']  # 3 labels
 
+target = pd.cut(target, bins=bins, labels=names)
+
+
+# %%
+sns.set_style("darkgrid")
+plt.figure(figsize=(6, 4))
+# Create the bar plot
+ax=sns.histplot(target,shrink=0.75)
+
+# Add labels
+plt.xlabel('')
+plt.ylabel('Number of players')
+ax.margins(x=0.02)
+ax.set_yticks(np.arange(0, 2100, 500))
+# plt.xticks(rotation=45)
+sns.set(font_scale=1.3)
+# Display the plot
+plt.tight_layout()
+# plt.show()
+#plt.savefig(f'Plots/target.pdf', bbox_inches='tight')
 # %% Baseline
 X, y = load_data(initial_data)
 results = evaluate_model(X, y)
