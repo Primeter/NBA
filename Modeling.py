@@ -189,9 +189,9 @@ target = pd.cut(target, bins=bins, labels=names)
 
 # %%
 sns.set_style("darkgrid")
-plt.figure(figsize=(6, 4))
+plt.figure(figsize=(6.5, 4))
 # Create the bar plot
-ax=sns.histplot(target,shrink=0.75)
+ax=sns.histplot(target,shrink=0.7)
 
 # Add labels
 plt.xlabel('')
@@ -203,7 +203,7 @@ sns.set(font_scale=1.3)
 # Display the plot
 plt.tight_layout()
 # plt.show()
-#plt.savefig(f'Plots/target.pdf', bbox_inches='tight')
+# plt.savefig(f'Plots/target.pdf', bbox_inches='tight')
 # %% Baseline
 X, y = load_data(initial_data)
 results = evaluate_model(X, y)
